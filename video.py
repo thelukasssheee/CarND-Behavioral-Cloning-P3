@@ -28,8 +28,8 @@ def main():
     image_list = [image_file for image_file in image_list if os.path.splitext(image_file)[1][1:].lower() in IMAGE_EXT]
 
     #two methods of naming output video to handle varying environemnts
-    video_file_1 = args.image_folder + '.mp4'
-    video_file_2 = args.image_folder + 'output_video.mp4'
+    video_file_1 = args.image_folder + '/' + args.image_folder + '.mp4'
+    video_file_2 = args.image_folder + '/' + 'output_video.mp4'
 
     print("Creating video {}, FPS={}".format(args.image_folder, args.fps))
     clip = ImageSequenceClip(image_list, fps=args.fps)
