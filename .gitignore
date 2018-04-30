@@ -1,0 +1,4 @@
+data/
+.DS_*
+mac_sim.app/
+.remote-sync.json
