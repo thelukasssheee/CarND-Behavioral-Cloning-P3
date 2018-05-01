@@ -79,11 +79,17 @@ print("  'X_train' and 'y_train' with {} elements\n".format(len(images_train)))
 print("  'X_test'  and 'y_test'  with {} elements\n".format(len(images_test)))
 ################################################################################
 ### Define generator function
+# Generator is used to read in image files during batch creation. Reason for
+# introducing this feature was memory limitations: model is now able to process
+# as many image files as needed!
 def generator(datasets, steer, batch_size):
     num_samples = len(datasets)
     while 1: # Loop forever so the generator never terminates
         datasets, steer = sklearn.utils.shuffle(datasets, steer)
         for offset in range(0, num_samples, int(batch_size/2)):
+            # Half batch size is used, because images are augmented with
+            # vertically rotated pictures --> multiplier of 2, but half as
+            # many pictures should be read in one batch
             batch_datasets = datasets[offset:offset+int(batch_size/2)]
             batch_steers   = steer[offset:offset+int(batch_size/2)]
 
@@ -105,10 +111,15 @@ def generator(datasets, steer, batch_size):
 ### Create generators for train and test datasets
 train_generator = generator(images_train, steer_train, batch_size=batch_sz)
 test_generator = generator(images_test, steer_test, batch_size=batch_sz)
-### Define model layout (NVidia model as indicated in video)
+### Define model layout (based on NVidia model as indicated in video
+# (URL: https://devblogs.nvidia.com/deep-learning-self-driving-cars/)
+# Original NVidia input size: 66,200,3
 model = Sequential()
+# Perform normalization of image data
 model.add(Lambda(lambda x: x / 255.0 - 0.5, input_shape = (160,320,3)))
-model.add(Cropping2D(cropping=((70,25), (0,0))))  # remaining: 65,320,3
+# Crop images: skip upper 70 and lower 25 pixels
+model.add(Cropping2D(cropping=((70,25), (0,0))))  # remaining size: 65,320,3
+# Several convolution layers, following NVidia
 model.add(Convolution2D(24,5,5,subsample=(2,2),activation="relu"))
 model.add(Convolution2D(36,5,5,subsample=(2,2),activation="relu"))
 model.add(Convolution2D(48,5,5,subsample=(2,2),activation="relu"))
@@ -119,7 +130,7 @@ model.add(Dense(100))
 model.add(Dense(50))
 model.add(Dense(10))
 model.add(Dense(1))
-### Define model optimization strategy
+### Model optimization strategy
 model.compile(loss='mse', optimizer='adam')
 ### Execute model
 model.fit_generator(train_generator,
