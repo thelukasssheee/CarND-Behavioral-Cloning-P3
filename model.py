@@ -10,7 +10,7 @@ from sklearn.model_selection import train_test_split
 ######################################################################################
 ### Settings
 use_datasets = [0,1,2]
-nb_epochs = 5
+nb_epochs = 3
 batch_sz = 32
 test_sz = 0.20
 steer_corr = 0.2
@@ -120,10 +120,10 @@ model.add(Dense(1))
 model.compile(loss='mse', optimizer='adam')
 # Execute model
 model.fit_generator(train_generator,
-                    samples_per_epoch=len(images_train),
+                    samples_per_epoch=len(images_train)*2,
                     nb_epoch=nb_epochs,
                     validation_data=test_generator,
-                    nb_val_samples=len(images_test))
+                    nb_val_samples=len(images_test)*2)
 # Save model
 print("\n Saving neural network model as 'model.h5'...",end='')
 model.save('model.h5')
