@@ -13,7 +13,7 @@ use_datasets = [0,1,2]
 nb_epochs = 3
 batch_sz = 32
 test_sz = 0.20
-steer_corr = 0.2
+steer_corr = 0.4
 
 ### List of available datasets
 datasets = np.array([   'data/Udacity/driving_log.csv', \
@@ -77,7 +77,7 @@ print("  'X_test'  and 'y_test'  with {} elements\n".format(len(images_test)))
 
 # Import functions
 from keras.models import Sequential
-from keras.layers import Flatten, Dense, Lambda, Cropping2D
+from keras.layers import Flatten, Dense, Lambda, Cropping2D, Convolution2D
 import sklearn
 
 ################################################################################
@@ -113,8 +113,16 @@ test_generator = generator(images_test, steer_test, batch_size=batch_sz)
 # Define model layout
 model = Sequential()
 model.add(Lambda(lambda x: x / 255.0 - 0.5, input_shape = (160,320,3)))
-model.add(Cropping2D(cropping=((70,25), (0,0))))
+model.add(Cropping2D(cropping=((70,25), (0,0))))  # remaining: 65,320,3
+model.add(Convolution2D(24,5,5,subsample=(2,2),activation="relu"))
+model.add(Convolution2D(36,5,5,subsample=(2,2),activation="relu"))
+model.add(Convolution2D(48,5,5,subsample=(2,2),activation="relu"))
+model.add(Convolution2D(64,3,3,activation="relu"))
+model.add(Convolution2D(64,3,3,activation="relu"))
 model.add(Flatten())
+model.add(Dense(100))
+model.add(Dense(50))
+model.add(Dense(10))
 model.add(Dense(1))
 # Define model optimization
 model.compile(loss='mse', optimizer='adam')
@@ -130,6 +138,7 @@ model.save('model.h5')
 print("DONE!")
 print("Script finished.")
 quit()
+################################################################################
 
     # ### Read images
     # images = []
