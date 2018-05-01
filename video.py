@@ -33,7 +33,7 @@ def main():
     video_file_2 = args.image_folder + '/' + 'output_video.mp4'
     gif_file_2 = args.image_folder + '/' + 'output_video.gif'
 
-    print("Creating video {}, FPS={}".format(args.image_folder, args.fps))
+    print("\nCreating video {}, FPS={}".format(args.image_folder, args.fps))
     print("Creating GIF {}, FPS=4 with every 15th image file".format(args.image_folder))
 
     clip = mpy.ImageSequenceClip(image_list, fps=args.fps)
