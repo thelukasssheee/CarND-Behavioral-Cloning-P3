@@ -10,7 +10,7 @@ from sklearn.model_selection import train_test_split
 ######################################################################################
 ### Settings
 use_datasets = [0,1,2]
-nb_epochs = 3
+nb_epochs = 1
 batch_sz = 32
 initialize_images = False
 test_sz = 0.20
@@ -54,7 +54,7 @@ def read_images(datasets):
         # filename = source_path.split('/')[-1]
         # current_path = 'data/Udacity/IMG/' + filename
         image = cv2.imread(source_path)
-        images.append(image)
+        images.append(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
         measurement = float(line[3])
         measurements.append(measurement)
     print("Amount of steering angle information: ", len(measurements))
@@ -97,18 +97,30 @@ print("  'X_test'  ({}) and 'y_test'  ({})\n".format(np.shape(X_test), len(y_tes
 # print("\nCreating video {}, FPS={}".format(args.image_folder, args.fps))
 
 from keras.models import Sequential
-from keras.layers import Flatten, Dense
+from keras.layers import Flatten, Dense, Lambda
 from keras.preprocessing.image import ImageDataGenerator
 import sklearn
 
 ### Define generator function
 def generator(X_samples, y_samples, batch_size):
+    # batch_size = int(batch_size * 0.5)
     num_samples = len(y_samples)
     while 1: # Loop forever so the generator never terminates
         X_samples, y_samples = sklearn.utils.shuffle(X_samples, y_samples)
         for offset in range(0, num_samples, batch_size):
+            # y_batch = np.append(
+            #     y_samples[offset:offset+batch_size]*-1,
+            #     y_samples[offset:offset+batch_size],
+            #     axis=0)
+            # X_batch = np.append(
+            #     X_samples[offset:offset+batch_size],
+            #     X_samples[offset:offset+batch_size],
+            #     axis=0)
+            # for img in X_batch[0:batch_size]:
+            #     img = cv2.flip(img,1)
             X_batch = X_samples[offset:offset+batch_size]
             y_batch = y_samples[offset:offset+batch_size]
+
 
             # images = []
             # angles = []
@@ -142,7 +154,8 @@ datagen = ImageDataGenerator(
 datagen.fit(X_train)
 
 model = Sequential()
-model.add(Flatten(input_shape=(160,320,3)))
+model.add(Lambda(lambda x: x / 255.0 - 0.5, input_shape = (160,320,3)))
+model.add(Flatten())
 model.add(Dense(1))
 
 model.compile(loss='mse', optimizer='adam')
@@ -161,31 +174,3 @@ print("\n Saving neural network model as 'model.h5'...",end='')
 model.save('model.h5')
 print("DONE!")
 print("Script finished.")
-
-quit()
-######################################################################################
-### Snippets
-######################################################################################
-print('Using real-time data augmentation.')
-# This will do preprocessing and realtime data augmentation:
-datagen = ImageDataGenerator(
-   featurewise_center=False,  # set input mean to 0 over the dataset
-   samplewise_center=False,  # set each sample mean to 0
-   featurewise_std_normalization=False,  # divide inputs by std of the dataset
-   samplewise_std_normalization=False,  # divide each input by its std
-   zca_whitening=False,  # apply ZCA whitening
-   rotation_range=0,  # randomly rotate images in the range (degrees, 0 to 180)
-   width_shift_range=0,  # randomly shift images horizontally (fraction of total width)
-   height_shift_range=0,  # randomly shift images vertically (fraction of total height)
-   horizontal_flip=False,  # randomly flip images
-   vertical_flip=False)  # randomly flip images
-
-# Compute quantities required for featurewise normalization
-# (std, mean, and principal components if ZCA whitening is applied).
-datagen.fit(X_train)
-
-model.fit_generator(datagen.flow(X_train, y_train,
-                       batch_size=batch_size),
-                       samples_per_epoch=X_train.shape[0],
-                       nb_epoch=nb_epoch,
-                       validation_data=(X_val, y_val))
