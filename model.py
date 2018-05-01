@@ -86,17 +86,22 @@ def generator(datasets, steer, batch_size):
     num_samples = len(datasets)
     while 1: # Loop forever so the generator never terminates
         datasets, steer = sklearn.utils.shuffle(datasets, steer)
-        for offset in range(0, num_samples, batch_size):
-            batch_datasets = datasets[offset:offset+batch_size]
-            batch_steer    = steer[offset:offset+batch_size]
+        for offset in range(0, num_samples, int(batch_size/2)):
+            batch_datasets = datasets[offset:offset+int(batch_size/2)]
+            batch_steers   = steer[offset:offset+int(batch_size/2)]
 
             images = []
             for batch_dataset in batch_datasets:
                 image = cv2.cvtColor(cv2.imread(batch_dataset),cv2.COLOR_BGR2RGB)
+                image_aug = cv2.flip(image,1)
                 images.append(image)
+                images.append(image_aug)
+            angles = []
+            for batch_steer in batch_steers:
+                angles.extend([float(batch_steer),float(batch_steer)*-1])
 
-            X_batch = np.array(images)
-            y_batch = np.array(batch_steer)
+            X_batch = np.array(images,dtype='float64')
+            y_batch = np.array(angles,dtype='float64')
 
             yield sklearn.utils.shuffle(X_batch, y_batch)
 ################################################################################
@@ -111,19 +116,15 @@ model.add(Lambda(lambda x: x / 255.0 - 0.5, input_shape = (160,320,3)))
 model.add(Cropping2D(cropping=((70,25), (0,0))))
 model.add(Flatten())
 model.add(Dense(1))
-
+# Define model optimization
 model.compile(loss='mse', optimizer='adam')
-# model.fit(X_train, y_train, validation_data=(X_test,y_test), shuffle=True, nb_epoch=nb_epochs)
-# model.fit_generator(datagen.flow(X_train, y_train, batch_size=batch_sz),
-#                     samples_per_epoch=len(X_train),
-#                     nb_epoch=nb_epochs,
-#                     validation_data=(X_test,y_test))
+# Execute model
 model.fit_generator(train_generator,
                     samples_per_epoch=len(images_train),
                     nb_epoch=nb_epochs,
                     validation_data=test_generator,
                     nb_val_samples=len(images_test))
-
+# Save model
 print("\n Saving neural network model as 'model.h5'...",end='')
 model.save('model.h5')
 print("DONE!")
