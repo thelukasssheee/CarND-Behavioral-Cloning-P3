@@ -50,6 +50,12 @@ My project includes the following files:
 * **model.h5** containing a trained convolution neural network 
 * **README.md** summarizing the results (write_up.md was replaced with this readme file)
 
+All files can be downloaded easily from my GitHub repository using the command
+
+```
+git clone https://github.com/thelukasssheee/CarND-Behavioral-Cloning-P3.git
+```
+
 #### 2. Submission includes functional code
 Using the Udacity provided simulator and my ``drive.py`` file, the car can be driven autonomously around the track by executing ``python drive.py model.h5``
 
@@ -61,7 +67,7 @@ However, it is necessary to activate the Anaconda development environment carnd-
 
 The ``model.py`` file contains the code for training and saving the convolution neural network. The file shows the pipeline I used for training and validating the model, and it contains comments to explain how the code works.
 
-The code is structured in such a way, that it can read the training data which I created, which are indicated by ``use_datasets = [0,1,2]``. If you want to run the code with the originally provided data by Udacity, you need to uncomment the line ``# use_datasets = [3]`` and comment the line ``use_datasets = [0,1,2]``.
+The code is structured in such a way, that it can read the training data which I created alongside with the Udacity data. This is indicated by the array ``use_datasets = [0,1,2]``. If you want to run the code with the originally provided data by Udacity in precisely the form it was provided, you need to uncomment the line ``# use_datasets = [3]`` and comment the line ``use_datasets = [0,1,2]``.
 
 ```
 ### Settings
@@ -86,7 +92,7 @@ datasets = datasets[use_datasets]
 
 #### 1. An appropriate model architecture has been employed
 
-My model consists of a convolution neural network, which was described in a [blog by nVidia](https://devblogs.nvidia.com/parallelforall/deep-learning-self-driving-cars). 
+My model consists of a convolution neural network, derived from a powerful network by [nVidia](https://devblogs.nvidia.com/) which was described in [their blog](https://devblogs.nvidia.com/parallelforall/deep-learning-self-driving-cars). 
 
 with 3x3 filter sizes and depths between 32 and 128 (model.py lines 18-24) 
 
