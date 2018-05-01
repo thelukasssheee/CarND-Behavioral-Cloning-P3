@@ -3,4 +3,4 @@ data/
 mac_sim.app/
 .remote-sync.json
 record*/
-*.h5
+oldmod*.h5
