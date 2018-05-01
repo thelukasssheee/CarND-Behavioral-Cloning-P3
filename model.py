@@ -78,6 +78,17 @@ def read_images(datasets):
     return X_train, X_test, y_train, y_test
 
 ######################################################################################
+### Function to augment available image files
+def augment_images(X_samples, y_samples):
+    X_augmented, y_augmented = [], []
+    for image, measurement in zip(X_samples,y_samples):
+        X_augmented.append(image)
+        y_augmented.append(measurement)
+        X_augmented.append(cv2.flip(image,1))
+        y_augmented.append(measurement*-1.0)
+    return np.array(X_augmented,dtype='uint8'), np.array(y_augmented,dtype='float32')
+
+######################################################################################
 ### Main script
 ######################################################################################
 ### Read in image files (directly or pickled)
@@ -90,6 +101,12 @@ else:
     X_train, X_test, y_train, y_test = pickle.load(f)
     print('DONE!')
 
+### Augment image data
+print("Augmenting image data (flip vertically)...",end='')
+X_train, y_train = augment_images(X_train,y_train)
+X_test, y_test = augment_images(X_test,y_test)
+print(" DONE!")
+
 ### Keras Neural Network
 print("\nStarting Keras instance with ")
 print("  'X_train' ({}) and 'y_train' ({})\n".format(np.shape(X_train), len(y_train)))
@@ -98,7 +115,7 @@ print("  'X_test'  ({}) and 'y_test'  ({})\n".format(np.shape(X_test), len(y_tes
 
 from keras.models import Sequential
 from keras.layers import Flatten, Dense, Lambda
-from keras.preprocessing.image import ImageDataGenerator
+# from keras.preprocessing.image import ImageDataGenerator
 import sklearn
 
 ### Define generator function
@@ -139,19 +156,19 @@ def generator(X_samples, y_samples, batch_size):
 train_generator = generator(X_train, y_train, batch_size=batch_sz)
 test_generator = generator(X_test, y_test, batch_size=batch_sz)
 
-
-datagen = ImageDataGenerator(
-    featurewise_center=False,  # set input mean to 0 over the dataset
-    samplewise_center=False,  # set each sample mean to 0
-    featurewise_std_normalization=False,  # divide inputs by std of the dataset
-    samplewise_std_normalization=False,  # divide each input by its std
-    zca_whitening=False,  # apply ZCA whitening
-    rotation_range=0,  # randomly rotate images in the range (degrees, 0 to 180)
-    width_shift_range=0,  # randomly shift images horizontally (fraction of total width)
-    height_shift_range=0,  # randomly shift images vertically (fraction of total height)
-    horizontal_flip=False,  # randomly flip images
-    vertical_flip=False)  # randomly flip images
-datagen.fit(X_train)
+#
+# datagen = ImageDataGenerator(
+#     featurewise_center=False,  # set input mean to 0 over the dataset
+#     samplewise_center=False,  # set each sample mean to 0
+#     featurewise_std_normalization=False,  # divide inputs by std of the dataset
+#     samplewise_std_normalization=False,  # divide each input by its std
+#     zca_whitening=False,  # apply ZCA whitening
+#     rotation_range=0,  # randomly rotate images in the range (degrees, 0 to 180)
+#     width_shift_range=0,  # randomly shift images horizontally (fraction of total width)
+#     height_shift_range=0,  # randomly shift images vertically (fraction of total height)
+#     horizontal_flip=False,  # randomly flip images
+#     vertical_flip=False)  # randomly flip images
+# datagen.fit(X_train)
 
 model = Sequential()
 model.add(Lambda(lambda x: x / 255.0 - 0.5, input_shape = (160,320,3)))
