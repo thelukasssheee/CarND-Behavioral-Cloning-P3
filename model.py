@@ -8,21 +8,24 @@ import sklearn
 from tqdm import tqdm
 from sklearn.model_selection import train_test_split
 from keras.models import Sequential
-from keras.layers import Flatten, Dense, Lambda, Cropping2D, Convolution2D
+from keras.layers import Flatten, Dense, Lambda, Cropping2D, Convolution2D, Dropout
 
 
 ######################################################################################
 ### Settings
 use_datasets = [0,1,2]  # Array to select which datasets to process
+# use_datasets = [3]      # Array to select which datasets to process
 nb_epochs = 3           # Number of epochs for neural network training
 batch_sz = 32           # Batch size for neural network
 test_sz = 0.20          # Fraction of images to use for test set
 steer_corr = 0.00       # Steering correction value (left, right camera)
+dropout_keep_rate = 0.7 # Dropout rate to keep neurons
 
 ### List of available datasets
 datasets = np.array([   'data/Udacity/driving_log.csv', \
                         'data/T1_Regular/driving_log.csv', \
-                        'data/T1_OtherDir/driving_log.csv'], \
+                        'data/T1_OtherDir/driving_log.csv', \
+                        'data/driving_log.csv'], \
                         dtype='str')
 datasets = datasets[use_datasets]
 
@@ -126,7 +129,9 @@ model.add(Convolution2D(48,5,5,subsample=(2,2),activation="relu"))
 model.add(Convolution2D(64,3,3,activation="relu"))
 model.add(Convolution2D(64,3,3,activation="relu"))
 model.add(Flatten())
+model.add(Dropout(dropout_keep_rate))
 model.add(Dense(100))
+model.add(Dropout(dropout_keep_rate))
 model.add(Dense(50))
 model.add(Dense(10))
 model.add(Dense(1))
