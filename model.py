@@ -13,7 +13,7 @@ use_datasets = [0,1,2]
 nb_epochs = 3
 batch_sz = 32
 test_sz = 0.20
-steer_corr = 0.4
+steer_corr = 0.00
 
 ### List of available datasets
 datasets = np.array([   'data/Udacity/driving_log.csv', \
