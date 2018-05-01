@@ -4,16 +4,20 @@ import numpy as np
 import ntpath
 import time
 import pickle
+import sklearn
 from tqdm import tqdm
 from sklearn.model_selection import train_test_split
+from keras.models import Sequential
+from keras.layers import Flatten, Dense, Lambda, Cropping2D, Convolution2D
+
 
 ######################################################################################
 ### Settings
-use_datasets = [0,1,2]
-nb_epochs = 3
-batch_sz = 32
-test_sz = 0.20
-steer_corr = 0.00
+use_datasets = [0,1,2]  # Array to select which datasets to process
+nb_epochs = 3           # Number of epochs for neural network training
+batch_sz = 32           # Batch size for neural network
+test_sz = 0.20          # Fraction of images to use for test set
+steer_corr = 0.00       # Steering correction value (left, right camera)
 
 ### List of available datasets
 datasets = np.array([   'data/Udacity/driving_log.csv', \
@@ -40,46 +44,39 @@ def read_csvs(datasets, steer_corr):
                     j = j + 1
                     continue
                 else:
+                    # Update image file paths for center, left and right cam
                     line[0] = ntpath.split(csvpath)[0] + \
-                                    '/IMG/'+ntpath.split(line[0])[-1]
+                                    '/IMG/'+ntpath.split(line[0])[-1] # center
                     line[1] = ntpath.split(csvpath)[0] + \
-                                    '/IMG/'+ntpath.split(line[1])[-1]
+                                    '/IMG/'+ntpath.split(line[1])[-1] # left
                     line[2] = ntpath.split(csvpath)[0] + \
-                                    '/IMG/'+ntpath.split(line[2])[-1]
-                    images.extend([
-                        line[0],
-                        line[1],
-                        line[2]])
+                                    '/IMG/'+ntpath.split(line[2])[-1] # right
+                    # Add image path information
+                    images.extend([line[0],line[1],line[2]])
+                    # Add steering angle information
                     measurements.extend([
                         float(line[3]),
                         float(line[3])+steer_corr,
                         float(line[3])-steer_corr])
             print('DONE!')
-            print('  Total amount of information is now at',len(images),
+            print('  Total amount of datasets is now at',len(images),
                 'and',len(measurements),'steering infos')
     return images, measurements
 ################################################################################
-
-### Read in files and split train and test dataset
+### Read in files
 images, steer = read_csvs(datasets, steer_corr)
+### Split datasets between "train" and "test" dataset
 images_train, images_test, steer_train, steer_test = train_test_split(
                                                             images,
                                                             steer,
                                                             test_size=test_sz,
                                                             random_state=42)
-
 ################################################################################
 ### Keras Neural Network
 # Print out
 print("\nStarting Keras")
 print("  'X_train' and 'y_train' with {} elements\n".format(len(images_train)))
 print("  'X_test'  and 'y_test'  with {} elements\n".format(len(images_test)))
-
-# Import functions
-from keras.models import Sequential
-from keras.layers import Flatten, Dense, Lambda, Cropping2D, Convolution2D
-import sklearn
-
 ################################################################################
 ### Define generator function
 def generator(datasets, steer, batch_size):
@@ -105,12 +102,10 @@ def generator(datasets, steer, batch_size):
 
             yield sklearn.utils.shuffle(X_batch, y_batch)
 ################################################################################
-
-# Create generators for train and test datasets
+### Create generators for train and test datasets
 train_generator = generator(images_train, steer_train, batch_size=batch_sz)
 test_generator = generator(images_test, steer_test, batch_size=batch_sz)
-
-# Define model layout
+### Define model layout (NVidia model as indicated in video)
 model = Sequential()
 model.add(Lambda(lambda x: x / 255.0 - 0.5, input_shape = (160,320,3)))
 model.add(Cropping2D(cropping=((70,25), (0,0))))  # remaining: 65,320,3
@@ -124,100 +119,18 @@ model.add(Dense(100))
 model.add(Dense(50))
 model.add(Dense(10))
 model.add(Dense(1))
-# Define model optimization
+### Define model optimization strategy
 model.compile(loss='mse', optimizer='adam')
-# Execute model
+### Execute model
 model.fit_generator(train_generator,
-                    samples_per_epoch=len(images_train)*2,
+                    samples_per_epoch=len(images_train)*2, # x2: augmentation
                     nb_epoch=nb_epochs,
                     validation_data=test_generator,
-                    nb_val_samples=len(images_test)*2)
-# Save model
+                    nb_val_samples=len(images_test)*2) # x2: augmentation
+### Save model
 print("\n Saving neural network model as 'model.h5'...",end='')
 model.save('model.h5')
 print("DONE!")
 print("Script finished.")
 quit()
 ################################################################################
-
-    # ### Read images
-    # images = []
-    # measurements = []
-    # print("\nBegin reading of images:",)
-    # for line in tqdm(lines, total=len(lines)):
-    #     source_center = line[0]
-    #     source_left = line[1]
-    #     source_right = line[2]
-    #     images.extend(
-    #         cv2.cvtColor(cv2.imread(source_center), cv2.COLOR_BGR2RGB),
-    #         cv2.cvtColor(cv2.imread(source_left),   cv2.COLOR_BGR2RGB),
-    #         cv2.cvtColor(cv2.imread(source_right),   cv2.COLOR_BGR2RGB),
-    #         )
-    #     measurement = float(line[3])
-    #     measurement_left = measurement + steer_corr
-    #     measurement_right = measurement - steer_corr
-    #     measurements.extend(measurement,measurement_left,measurement_right)
-    # print("Amount of steering angle information: ", len(measurements))
-    # print("Dimensions of image container:        ", np.shape(images))
-    #
-    #
-    # ### Split train and test data (with a fixed random seed)
-    # print("Splitting image data into train and test set ({}%)...".format(test_sz*100), end='')
-    # X_train, X_test, y_train, y_test = train_test_split(
-    #     np.array(images, dtype='uint8'),
-    #     np.array(measurements, dtype='float32'),
-    #     test_size=test_sz, random_state=42)
-    # print("DONE!")
-    # print(X_train.dtype, X_test.dtype, y_train.dtype, y_test.dtype)
-    #
-    # ### Write pickle file
-    # print("Saving image data in pickle file...", end='')
-    # f = open("data/train_dataset.pkl", "wb")
-    # pickle.dump([X_train, X_test, y_train, y_test], f)
-    # print("DONE!")
-    # return X_train, X_test, y_train, y_test
-#
-# ######################################################################################
-# ### Function to augment available image files
-# def augment_images(X_samples, y_samples):
-#     X_augmented, y_augmented = [], []
-#     for image, measurement in zip(X_samples,y_samples):
-#         X_augmented.append(image)
-#         y_augmented.append(measurement)
-#         X_augmented.append(cv2.flip(image,1))
-#         y_augmented.append(measurement*-1.0)
-#     return np.array(X_augmented,dtype='uint8'), np.array(y_augmented,dtype='float32')
-
-######################################################################################
-### Main script
-######################################################################################
-### Read in image files (directly or pickled)
-# if initialize_images:
-#     print('\nReading in of datasets is being prepared (merge CSV files, generate pickled file)...')
-#     X_train, X_test, y_train, y_test = read_images(datasets, steer_corr)
-# else:
-#     print('\nOpening dataset from prepared pickle file...', end='')
-#     f = open("data/train_dataset.pkl", 'rb')
-#     X_train, X_test, y_train, y_test = pickle.load(f)
-#     print('DONE!')
-#
-# ### Augment image data
-# print("Augmenting image data (flip vertically)...",end='')
-# X_train, y_train = augment_images(X_train,y_train)
-# X_test, y_test = augment_images(X_test,y_test)
-# print(" DONE!")
-
-
-#
-# datagen = ImageDataGenerator(
-#     featurewise_center=False,  # set input mean to 0 over the dataset
-#     samplewise_center=False,  # set each sample mean to 0
-#     featurewise_std_normalization=False,  # divide inputs by std of the dataset
-#     samplewise_std_normalization=False,  # divide each input by its std
-#     zca_whitening=False,  # apply ZCA whitening
-#     rotation_range=0,  # randomly rotate images in the range (degrees, 0 to 180)
-#     width_shift_range=0,  # randomly shift images horizontally (fraction of total width)
-#     height_shift_range=0,  # randomly shift images vertically (fraction of total height)
-#     horizontal_flip=False,  # randomly flip images
-#     vertical_flip=False)  # randomly flip images
-# datagen.fit(X_train)
