@@ -1,9 +1,9 @@
-from moviepy.editor import ImageSequenceClip
+import moviepy.editor as mpy
 import argparse
 import os
 
 
-IMAGE_EXT = ['jpeg', 'gif', 'png', 'jpg']
+IMAGE_EXT = ['jpeg', 'png', 'jpg']
 
 
 def main():
@@ -29,16 +29,20 @@ def main():
 
     #two methods of naming output video to handle varying environemnts
     video_file_1 = args.image_folder + '/' + args.image_folder + '.mp4'
+    gif_file_1 = args.image_folder + '/' + args.image_folder + '.gif'
     video_file_2 = args.image_folder + '/' + 'output_video.mp4'
+    gif_file_2 = args.image_folder + '/' + 'output_video.gif'
 
     print("Creating video {}, FPS={}".format(args.image_folder, args.fps))
-    clip = ImageSequenceClip(image_list, fps=args.fps)
+    clip = mpy.ImageSequenceClip(image_list, fps=args.fps)
+    clip_gif = mpy.ImageSequenceClip(image_list[0::15], fps=4)
 
     try:
         clip.write_videofile(video_file_1)
+        clip_gif.write_gif(gif_file_1)
     except:
         clip.write_videofile(video_file_2)
-
+        clip_gif.write_gif(gif_file_2)
 
 if __name__ == '__main__':
     main()
