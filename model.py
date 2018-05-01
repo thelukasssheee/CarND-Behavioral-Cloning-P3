@@ -5,15 +5,20 @@ import ntpath
 import time
 from tqdm import tqdm
 
+### Settings
+use_datasets = [0,1]
+nb_epochs = 4
+
 
 ### List of available datasets
-datasets = ['data/Udacity/driving_log.csv', \
-            'data/T1_Regular/driving_log.csv']
-
-print('\nDatasets used: "',datasets,'"', sep='')
-lines = []
+datasets = np.array([   'data/Udacity/driving_log.csv', \
+                        'data/T1_Regular/driving_log.csv'], \
+                        dtype='str')
+datasets = datasets[use_datasets]
+print('\nReading in of datasets is being prepared (merge CSV files)...')
 
 ### Open CSV files of provided datasets
+lines = []
 for csvpath in datasets:
     with open(csvpath) as csvfile:
     # with open('data/Udacity/driving_log.csv') as csvfile:
@@ -60,6 +65,9 @@ model.add(Flatten(input_shape=(160,320,3)))
 model.add(Dense(1))
 
 model.compile(loss='mse', optimizer='adam')
-model.fit(X_train, y_train, validation_split=0.2, shuffle=True, nb_epoch=10)
+model.fit(X_train, y_train, validation_split=0.2, shuffle=True, nb_epoch=nb_epochs)
 
+print("\n Saving NN model as 'model.h5'...",end='')
 model.save('model.h5')
+print("done!")
+print("Script finished.")
