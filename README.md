@@ -136,7 +136,7 @@ Training data was chosen to keep the vehicle driving on the road.
 
 Most of this data consisted of center lane driving. 
 
-Originally, I planned to add some image data consisting of recovery maneuvers from the left or right side of the road. This was not at all necessary! By introducing left and right camera images to the overall pool and augmenting the avilable image data (flip horizontally), the overall result was becoming very stable. 
+Originally, I planned to add some image data consisting of recovery maneuvers from the left or right side of the road. This was not at all necessary! By introducing left and right camera images to the overall pool and augmenting the avilable image data (flip around vertical axis), the overall result was becoming very stable indeed. 
 
 ### Model Architecture and Training Strategy
 
@@ -154,7 +154,7 @@ Model v1: Enjoying a bath... (loss 2519)
 
 ![Model v1](./examples/record1.gif "Model v1: Is it a boat?")
 
-Model v2: Additional training lap CW introduced, biased CCW (loss 1681)
+Model v2: Additional training lap CCW introduced, biased CCW (loss 1681)
 
 ![Model v2](./examples/record2.gif "Model v2: Donuts CCW")
 
