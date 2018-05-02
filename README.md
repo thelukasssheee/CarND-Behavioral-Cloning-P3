@@ -229,6 +229,8 @@ The final model was working really well on the test track. Even at a speed of 30
 
 ![Model v10](./examples/record10_30mph.gif "Model v10: Final model")
 
+Since the last GIF is not always loading properly (filesize too large... 9M), I created an additional video file showing how the model is running and how the system behaves. It can be found on [YouTube](https://www.youtube.com/watch?v=kMGlbVB5Nu4). There is no audio added. Enjoy watching!
+
 It was again a really nice and interesting project to work on.
 
 For me it was especially surprising, that a model was obtained only by providing images and a steering wheel information!
