@@ -158,7 +158,7 @@ Model v2: Additional training lap CCW introduced, biased CCW (loss 1681)
 
 ![Model v2](./examples/record2.gif "Model v2: Donuts CCW")
 
-Model v3: Additional training lap CW & long CCW, now biased CW (loss 1901)
+Model v3: Additional training lap CCW & long CW, now biased CW (loss 1901)
 
 ![Model v3](./examples/record3.gif "Model v3: Donuts CW")
 
